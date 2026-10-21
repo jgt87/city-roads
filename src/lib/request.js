@@ -28,8 +28,12 @@ export default function request(url, options) {
     req.addEventListener('load', transferComplete, false);
     req.addEventListener('error', transferFailed, false);
     req.addEventListener('abort', transferCanceled, false);
+    req.addEventListener('timeout', transferTimedOut, false);
 
     req.open(options.method || 'GET', url);
+    if (options.timeout) {
+      req.timeout = options.timeout;
+    }
     if (options.responseType) {
       req.responseType = options.responseType;
     }
@@ -85,7 +89,17 @@ export default function request(url, options) {
     }
 
     function transferFailed() {
-      reject(`Failed to download ${url}`);
+      progress.offCancel(cancelDownload);
+      let err = new Error(`Failed to download ${url}`);
+      err.networkError = true;
+      reject(err);
+    }
+
+    function transferTimedOut() {
+      progress.offCancel(cancelDownload);
+      let err = new Error(`Timed out downloading ${url}`);
+      err.timedOut = true;
+      reject(err);
     }
 
     function transferCanceled() {

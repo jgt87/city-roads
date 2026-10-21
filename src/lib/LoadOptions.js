@@ -35,7 +35,7 @@ export default class LoadOptions {
 
     if (rawOptions.projector) {
       // user defined projection. See https://github.com/d3/d3-geo for the projector reference:
-      result.projector = projector;
+      result.projector = rawOptions.projector;
     }
 
     return result;
@@ -52,8 +52,9 @@ export default class LoadOptions {
     */
     this.projector = undefined;
     this.wayFilter = undefined;
-    this.timeout = 900;
-    this.maxHeapByteSize = 1073741824;
+    // Public Overpass servers reject large resource reservations when busy
+    this.timeout = 180;
+    this.maxHeapByteSize = 268435456;
     this.outputMethod = 'skel'; // body
     Object.assign(this, overrides);
   }
