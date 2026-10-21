@@ -80,6 +80,7 @@ import queryState from '../lib/appState.js';
 import config from '../config.js';
 import Progress from '../lib/Progress.js'
 import LoadOptions from '../lib/LoadOptions.js';
+import loadAreaRoads from '../lib/loadAreaRoads.js';
 import Pbf from 'pbf';
 import {place} from '../proto/place.js';
 
@@ -253,12 +254,15 @@ export default {
       
       // it may take a while to load data. 
       this.restartLoadingMonitor();
-      Query.runFromOptions(new LoadOptions({
-        wayFilter: Query.Road,
-        areaId: suggestion.areaId,
-        bbox: suggestion.bbox
-      }), this.generateNewProgressToken())
-      .then(grid => {
+      let progress = this.generateNewProgressToken();
+      let gridPromise = suggestion.areaId ?
+        loadAreaRoads(suggestion.areaId, progress) :
+        Query.runFromOptions(new LoadOptions({
+          wayFilter: Query.Road,
+          bbox: suggestion.bbox
+        }), progress);
+
+      gridPromise.then(grid => {
         this.loading = null;
         if (!grid.hasRoads()) {
           this.noRoads = true;
